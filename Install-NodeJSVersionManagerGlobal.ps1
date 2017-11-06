@@ -1,5 +1,5 @@
 [string] $installLocation = "$env:ProgramFiles\WindowsPowerShell\Modules"
-[string] $uri = 'https://raw.githubusercontent.com/angrifel/ps-nodejs-version-manager/master/NodeJS.psm1'
+[string] $uri = 'https://raw.githubusercontent.com/angrifel/ps-nodejs-version-manager/master/NodeJSVersionManager.psm1'
 [string] $moduleLocation = Join-Path -Path $installLocation -ChildPath "NodeJSVersionManager"
 
 if (-not (Test-Path -Path $moduleLocation -PathType Container)) {
