@@ -1,4 +1,5 @@
 [string] $SourcesRoot = 'https://nodejs.org/dist'
+[string] $DefaultNodeJSDistribution = 'c:\env\nodejs'
 [string[]] $SupportedArchitectures = @('x86', 'x64')
 
 function Set-NodeJSVersion(
@@ -21,8 +22,27 @@ function Get-NodeJSVersionDirectory(
 }
 
 function Get-NodeJSDistributionDirectory {
-    return "c:\env\nodejs\dist"
+    [string] $dist = [System.Environment]::GetEnvironmentVariable('ENV_NODEJS', [EnvironmentVariableTarget]::User)
+    if ($dist -eq $null -or $dist -eq '') {
+        return $DefaultNodeJSDistribution
+    }
+
+    return $dist
 }
+
+function Set-NodeJSDistributionDirectory (
+    [Parameter(Mandatory=$true)] [string] $Path) {
+    if ($path -imatch '^[a-z]\:\\$') {
+        throw 'Path cannot be a root drive'
+    }
+    [string] $newPath = $path
+    if ($newPath.EndsWith('\')) {
+        $newPath = $newPath.Substring(0, $path.Length - 1)
+    }
+
+    [void][System.Environment]::SetEnvironmentVariable('ENV_NODEJS', $newPath, [EnvironmentVariableTarget]::User)
+}
+
 
 function Get-NodeJSVersionIdentifier([string] $Version, [string] $Architecture) {
     return "node-v$Version-win-$Architecture"
@@ -59,7 +79,7 @@ function Get-NodeJSAvailableVersion() {
         }
     }
 
-    return $versionsWithArchitectures  | `
+    return $versionsWithArchitectures | `
             Where-Object { (Test-NodeJSVersionExists $_.Version $_.Architecture) -eq $true } | `
             ForEach-Object { (Get-NodeJSVersionIdentifier $_.Version $_.Architecture) }
 }
@@ -68,6 +88,7 @@ function Get-NodeJSInstalledVersion {
     [string] $root = Get-NodeJSDistributionDirectory
     return Get-ChildItem -Path $Root | ForEach-Object {$_.Name}
 }
+
 
 <#
 .SYNOPSIS
@@ -110,8 +131,15 @@ function Install-NodeJS(
     }
 }
 
-function GetNodeJsRoot() {
-    return "c:\env\nodejs"
+function Clear-NodeJSVersion {
+    [string] $path = [System.Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::User)
+    [string] $processPath = [System.Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::Process)
+    
+    [string] $newPath = ReplaceNodeJSPath $path ''
+    [string] $newProcessPath = ReplaceNodeJSPath $processPath ''
+    
+    [void][System.Environment]::SetEnvironmentVariable('PATH', $newPath, [EnvironmentVariableTarget]::User)
+    [void][System.Environment]::SetEnvironmentVariable('PATH', $newProcessPath, [EnvironmentVariableTarget]::Process)
 }
 
 function Get-NodeJSVersion([switch] $Local, [switch] $Remote) {
@@ -154,9 +182,8 @@ function Get-NodeJSVersion([switch] $Local, [switch] $Remote) {
     }
 }
 
-function SetPathEnvironmentToNodeVersion([string] $newVersionRoot) {
+function ReplaceNodeJSPath([string] $path, [string] $newRoot) {
     [string] $root = Get-NodeJSDistributionDirectory
-    [string] $path = [System.Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::User)
     [string[]] $components = $path.Split(';', [StringSplitOptions]::None)
     [int] $index = 0
     [int] $found = -1
@@ -168,23 +195,44 @@ function SetPathEnvironmentToNodeVersion([string] $newVersionRoot) {
          $index += 1
     }
 
-    [string] $newPath = ""
-
-    if ($found -eq -1) {
-        $newPath = "$newVersionRoot;$path"
+    if ($newRoot -eq $null -or $newRoot -eq '') {
+        if ($found -eq -1) {
+            return $path
+        }
+        else {
+            $components[$found] = $newRoot
+            return @(
+                [string]::Join(';', $components, 0, $found), 
+                [string]::Join(';', $components, $found + 1, $components.Length - $found - 1)) -join ';'
+        }
     }
     else {
-        $components[$found] = $newVersionRoot
-        $newPath = [string]::Join(';', $components)
+        if ($found -eq -1) {
+            return "$newRoot;$path"
+        }
+        else {
+            $components[$found] = $newRoot
+            return $components -join ';'
+        }
     }
-    
-    [string] $nodeREPLHistory = "$newVersionRoot\.node_repl_history"
-    [void][System.Environment]::SetEnvironmentVariable('PATH', $newPath, [EnvironmentVariableTarget]::User)
-    [void][System.Environment]::SetEnvironmentVariable('NODE_REPL_HISTORY', $nodeREPLHistory, [EnvironmentVariableTarget]::User)
 }
 
-Export-ModuleMember -Function Set-NodeJSVersion
+function SetPathEnvironmentToNodeVersion([string] $newVersionRoot) {
+    [string] $root = Get-NodeJSDistributionDirectory
+    [string] $path = [System.Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::User)
+    [string] $processPath = [System.Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::Process)
+    
+    [string] $newPath = ReplaceNodeJSPath $path $newVersionRoot
+    [string] $newProcessPath = ReplaceNodeJSPath $processPath $newVersionRoot
+    
+    [void][System.Environment]::SetEnvironmentVariable('PATH', $newPath, [EnvironmentVariableTarget]::User)
+    [void][System.Environment]::SetEnvironmentVariable('PATH', $newProcessPath, [EnvironmentVariableTarget]::Process)
+}
+
+Export-ModuleMember -Function Install-NodeJS
 Export-ModuleMember -Function Get-NodeJSVersion
+Export-ModuleMember -Function Set-NodeJSVersion
+Export-ModuleMember -Function Clear-NodeJSVersion
 Export-ModuleMember -Function Get-NodeJSVersionDirectory
 Export-ModuleMember -Function Get-NodeJSDistributionDirectory
-Export-ModuleMember -Function Install-NodeJS
+Export-ModuleMember -Function Set-NodeJSDistributionDirectory
