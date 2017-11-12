@@ -48,17 +48,17 @@ function Get-NodeJSVersionSource([string] $Version, [string] $Architecture) {
     return "$SourcesRoot/v$Version/$fileName"
 }
 
-function Test-NodeJSVersionExists([string] $Version, [string] $Architecture) {
-    [int] $statusCode
-    try { 
-        $statusCode = (Invoke-WebRequest -Uri (Get-NodeJSVersionSource $Version $Architecture) -Method 'Head').StatusCode
-    }
-    catch {
-        $statusCode = $_.Exception.Response.StatusCode.Value
-    }
+# function Test-NodeJSVersionExists([string] $Version, [string] $Architecture) {
+#     [int] $statusCode
+#     try { 
+#         $statusCode = (Invoke-WebRequest -Uri (Get-NodeJSVersionSource $Version $Architecture) -Method 'Head').StatusCode
+#     }
+#     catch {
+#         $statusCode = $_.Exception.Response.StatusCode.Value
+#     }
 
-    return $statusCode -eq 200
-}
+#     return $statusCode -eq 200
+# }
 
 <#
 .SYNOPSIS
@@ -149,7 +149,7 @@ function Get-NodeJSVersion([switch] $Local, [switch] $Remote) {
         }
 
         return $versionsWithArchitectures  | `
-            Where-Object { (Test-NodeJSVersionExists $_.Version $_.Architecture) -eq $true } | `
+            # Where-Object { (Test-NodeJSVersionExists $_.Version $_.Architecture) -eq $true } | `
             ForEach-Object { (Get-NodeJSVersionIdentifier $_.Version $_.Architecture) }
     }
 
