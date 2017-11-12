@@ -8,12 +8,7 @@ PS NodeJS Version Manager is a version manager for NodeJS written in Windows Pow
 In order to install the version manager for windows run the following line in a powershell prompt.
 
 ``` powershell
-(Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/angrifel/ps-nodejs-version-manager/master/Install-NodeJSVersionManagerUser.ps1').Content | iex
-```
-Alternatively if you want to perform a machine install of the module run the following command
-
-``` powershell
-(Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/angrifel/ps-nodejs-version-manager/master/Install-NodeJSVersionManagerGlobal.ps1').Content | iex
+(Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/angrifel/ps-nodejs-version-manager/master/Install-NodeJSVersionManager.ps1').Content | iex
 ```
 
 ## Usage
@@ -38,17 +33,5 @@ Set-NodeJSVersion -Version 'major.minor.revision' -Architecture 'x86|x64' # Adju
 Clear-NodeJSVersion # Removes the current NodeJS version from the PATH.
 ```
 
-
-``` powershell
-Get-NodeJSVersionDirectory # Gets the directory of the current NodeJS version.
-```
-
-``` powershell
-Get-NodeJSDistributionDirectory # Gets the directory where NodeJS distributions are installed.
-```
-
-``` powershell
-Set-NodeJSDistributionDirectory # Sets the directory where NodeJS distributions are installed.
-```
 
 NOTE: NodeJS Version Manager is designed to run on wndows only. 
