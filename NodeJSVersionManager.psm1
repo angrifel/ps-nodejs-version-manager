@@ -135,6 +135,9 @@ function Get-NodeJSVersion([switch] $Local, [switch] $Remote) {
         $versions = (Invoke-WebRequest -Uri $SourcesRoot).Links | `
             Where-Object { $_.href -match '^v[0-9]+\.[0-9]+\.[0-9]+\/$' } | `
             Where-Object { $_.href -notmatch '^v0.[0-9]+\.[0-9]+\/$' } | ` # version v0.x.x is known to not contain any version of windows zipped
+            Where-Object { $_.href -notmatch '^v4.[0-4]+\.[0-9]+\/$' } | ` # version v4.0.x to v4.4.x is known to not contain any version of windows zipped
+            Where-Object { $_.href -notmatch '^v5.[0-9]+\.[0-9]+\/$' } | ` # version v5.x.x is known to not contain any version of windows zipped
+            Where-Object { $_.href -notmatch '^v6.[0-1]+\.[0-9]+\/$' } | ` # version v6.0.x to v6.1.x is known to not contain any version of windows zipped
             ForEach-Object { $_.href.Substring(1, $_.href.Length - 2) }
 
                    
