@@ -4,6 +4,7 @@
 function Test-PathEnvironmentVariable([string] $Path, [EnvironmentVariableTarget] $Target) {
     [string[]] $components = $path.Split(';', [StringSplitOptions]::None)
     [int] $found = -1
+    [int] $index = 0
     while ($index -lt $components.Length) {
          if ($components[$index].StartsWith($Path, [StringComparison]::OrdinalIgnoreCase)) {
              return $true
